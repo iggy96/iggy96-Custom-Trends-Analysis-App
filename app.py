@@ -238,7 +238,7 @@ if 'processed_data' in st.session_state:
         st.header("Time Series Forecasting Results")
         fig, ax = plt.subplots(figsize=(10, 6))
 
-        train.plot(ax=ax, color='blue', linewidth=10, label='Observed')
+        train.plot(ax=ax, color='blue', linewidth=5, label='Observed')
         #test.plot(ax=ax, color='green', linewidth=5, label='Test')
         forecast.plot(ax=ax, color='red', linewidth=5, label='Forecast')
         ax.fill_between(forecast.index, forecast - 1.96 * forecast.std(), forecast + 1.96 * forecast.std(), color='lightgrey')
