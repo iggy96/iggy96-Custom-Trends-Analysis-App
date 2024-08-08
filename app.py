@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
+import plotly.express as px
+import plotly.graph_objects as go
 from helper import *
 
 st.title("Custom Training Analytics")
@@ -250,5 +252,45 @@ if 'processed_data' in st.session_state:
         plt.tight_layout()
         st.pyplot(fig)
 
+# Step 6: Plotly Dashboard/Report
+if 'processed_data' in st.session_state:
+    st.markdown("### **Step 6: Plotly Dashboard/Report**")
+
+    if st.button("Generate Plotly Dashboard"):
+        st.session_state['generate_dashboard'] = True
+
+    if 'generate_dashboard' in st.session_state:
+        # Plotly Distribution of Training Status
+        fig1 = px.histogram(processed_data, x='Training Status', title='Distribution of Training Status')
+
+        # Plotly Histogram of Training Cost
+        fig2 = px.histogram(processed_data, x='Training Cost', title='Histogram of Training Cost', nbins=50)
+
+        # Plotly Pairplot for numerical columns
+        numerical_columns = processed_data.select_dtypes(include=['float64', 'int64']).columns
+        fig3 = px.scatter_matrix(processed_data, dimensions=numerical_columns, title='Pairplot of Numerical Columns')
+
+        # Plotly Trend Analysis
+        trend_result = trend_analysis(processed_data, st.session_state['dependent_variable'], st.session_state['independent_variable'])
+        fig4 = go.Figure()
+        fig4.add_trace(go.Scatter(x=trend_result.observed.index, y=trend_result.observed, mode='lines', name='Observed'))
+        fig4.add_trace(go.Scatter(x=trend_result.trend.index, y=trend_result.trend, mode='lines', name='Trend'))
+        fig4.add_trace(go.Scatter(x=trend_result.seasonal.index, y=trend_result.seasonal, mode='lines', name='Seasonal'))
+        fig4.add_trace(go.Scatter(x=trend_result.resid.index, y=trend_result.resid, mode='lines', name='Residual'))
+        fig4.update_layout(title='Trend Analysis', xaxis_title=st.session_state['independent_variable'], yaxis_title=st.session_state['dependent_variable'])
+
+        # Plotly Forecasting Results
+        train, test, forecast = time_series_forecasting(processed_data, st.session_state['forecast_dependent_variable'], st.session_state['forecast_independent_variable'], st.session_state['forecast_years'])
+        fig5 = go.Figure()
+        fig5.add_trace(go.Scatter(x=train.index, y=train, mode='lines', name='Observed'))
+        fig5.add_trace(go.Scatter(x=forecast.index, y=forecast, mode='lines', name='Forecast'))
+        fig5.update_layout(title='Time Series Forecasting', xaxis_title=st.session_state['forecast_independent_variable'], yaxis_title=st.session_state['forecast_dependent_variable'])
+
+        # Display Plotly Dashboard
+        st.plotly_chart(fig1)
+        st.plotly_chart(fig2)
+        st.plotly_chart(fig3)
+        st.plotly_chart(fig4)
+        st.plotly_chart(fig5)
 else:
     st.write("Please upload and preprocess a CSV file to proceed.")
